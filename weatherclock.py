@@ -82,8 +82,8 @@ def run():
         offscreen_canvas = matrix.SwapOnVSync(offscreen_canvas)
 
         if datetime.datetime.now().time() > datetime.time(9, 00):
-            pass
-            #return
+            #pass
+            return
 
         time.sleep(1)
 
