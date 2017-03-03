@@ -6,7 +6,6 @@ sys.path.append('./matrix/python')
 import time
 import datetime
 import requests
-import schedule
 from rgbmatrix import graphics, RGBMatrix, RGBMatrixOptions
 from PIL import Image
 
@@ -62,8 +61,7 @@ def run():
 
 
     while True:
-        if datetime.datetime.now().time() > datetime.time(9, 00):
-            #pass
+        if datetime.datetime.now().time() >= datetime.time(10, 00):
             return
 
         offscreen_canvas.Clear()
@@ -100,7 +98,8 @@ def get_weather():
 
 # Main function
 if __name__ == "__main__":
-    schedule.every().day.at("07:30").do(run)
     while True:
-        schedule.run_pending()
+        if datetime.datetime.now().time() >= datetime.time(7, 30):
+            run()
         time.sleep(60)
+
