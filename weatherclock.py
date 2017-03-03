@@ -62,6 +62,10 @@ def run():
 
 
     while True:
+        if datetime.datetime.now().time() > datetime.time(9, 00):
+            #pass
+            return
+
         offscreen_canvas.Clear()
 
         # set up the time display
@@ -80,10 +84,6 @@ def run():
 
         # swap the canvas with the offscreen
         offscreen_canvas = matrix.SwapOnVSync(offscreen_canvas)
-
-        if datetime.datetime.now().time() > datetime.time(9, 00):
-            #pass
-            return
 
         time.sleep(1)
 
