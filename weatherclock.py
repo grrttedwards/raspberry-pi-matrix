@@ -10,8 +10,8 @@ from rgbmatrix import graphics, RGBMatrix, RGBMatrixOptions
 from PIL import Image
 
 
-ZIP_CODE = "14623"
-API_KEY = "44a751f5ab2cd6e17bbcbdbd0057140e"
+ZIP_CODE = ""
+API_KEY = ""
 
 WEATHER_ICONS = {
     '01d': "img/sunny.bmp",          # clear sky
@@ -102,4 +102,3 @@ if __name__ == "__main__":
         if datetime.datetime.now().time() >= datetime.time(7, 30):
             run()
         time.sleep(60)
-
