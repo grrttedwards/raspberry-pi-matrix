@@ -100,5 +100,7 @@ def get_weather():
 
 # Main function
 if __name__ == "__main__":
-    schedule.every().day.at("07:30")
-    run()
+    schedule.every().day.at("07:30").do(run)
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
