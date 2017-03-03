@@ -6,7 +6,7 @@ Uses [hzeller's rpi-rgb-led-matrix code](https://github.com/hzeller/rpi-rgb-led-
 
 ## Installation
 Required packages:
-```pip install schedule Pillow requests```
+```pip install Pillow requests```
 
 ## Usage
 ```sudo ./weatherclock.py```
