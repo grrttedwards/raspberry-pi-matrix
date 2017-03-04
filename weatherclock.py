@@ -59,7 +59,7 @@ def run():
 
     temp_x = 17
     temp_y = 24
-    temp_color = graphics.Color(255, 255, 255)
+    temp_color = graphics.Color(63, 255, 153)
 
     temperature, weather_icon = get_weather() #270.23, "../img/sunny.bmp"
     temperature = temperature * 9 / 5 - 459.67
@@ -67,7 +67,7 @@ def run():
 
 
     while True:
-        if datetime.datetime.now().time() >= datetime.time(10, 00):
+        if datetime.datetime.now().time() >= datetime.time(12, 00):
             return
 
         offscreen_canvas.Clear()
@@ -92,8 +92,8 @@ def run():
         time.sleep(1)
 
 def get_weather():
-    req = requests.get("http://api.openweathermap.org/data/2.5/weather?zip={},us&APPID={}"
-                       .format(ZIP_CODE, API_KEY))
+    req = requests.get("http://api.openweathermap.org/data/2.5/weather?id={}&APPID={}"
+                       .format(CITY_ID, API_KEY))
     json = req.json()
     if req.status_code != 200:
         print(req, json)
