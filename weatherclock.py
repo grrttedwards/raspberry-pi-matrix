@@ -3,6 +3,8 @@
 import sys
 sys.path.append('./matrix/python')
 
+import os
+import sys
 import time
 import datetime
 import requests
@@ -10,8 +12,12 @@ from rgbmatrix import graphics, RGBMatrix, RGBMatrixOptions
 from PIL import Image
 
 
-ZIP_CODE = ""
-API_KEY = ""
+try:
+    CITY_ID = os.environ['WEATHER_CITY_ID'] 
+    API_KEY = os.environ['WEATHER_API_KEY'] 
+except KeyError:
+    print("WEATHER_CITY_ID or WEATHER_API_KEY is not set. Exiting.")
+    sys.exit(1) 
 
 WEATHER_ICONS = {
     '01d': "img/sunny.bmp",          # clear sky
