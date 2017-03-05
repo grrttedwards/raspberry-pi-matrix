@@ -30,7 +30,7 @@ WEATHER_ICONS = {
     '13d': "img/snowy.bmp",          # snow
     '50d': "img/misty.bmp",          # mist
     '01n': "img/moony.bmp",          # night clear sky
-    '02n': "img/partly-cloudy-night" # night few clouds
+    '02n': "img/partly-cloudy-night.bmp" # night few clouds
 }
 
 # configuration for the matrix
