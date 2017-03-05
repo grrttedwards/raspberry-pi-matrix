@@ -74,7 +74,7 @@ def run():
         offscreen_canvas.Clear()
 
         # when to go blank for the night
-        if datetime.now().time() >= time(12, 00):
+        if datetime.now().time() >= time(20, 00):
             offscreen_canvas = matrix.SwapOnVSync(offscreen_canvas)
             return
 
