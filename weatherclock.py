@@ -57,6 +57,12 @@ font_temp.LoadFont("matrix/fonts/5x7.bdf")
 temp_color = graphics.Color(0, 179, 239)
 temp_x, temp_y = 17, 24
 
+font_temp_mm = graphics.Font()
+font_temp_mm.LoadFont("matrix/fonts/4x6.bdf")
+font_temp_mm_color = graphics.Color(100, 150, 0)
+temp_max_x, temp_max_y = 20, 17
+temp_min_x, temp_min_y = 20, 30
+
 def run():
     offscreen_canvas = matrix.CreateFrameCanvas()
     # schedule one weather update immediately
@@ -81,12 +87,14 @@ def run():
 
         # make request for weather if enough time has passed
         if datetime.now() >= time_to_update:
-            temperature, glyph = get_weather()
+            temperature, temp_min, temp_max, glyph = get_weather()
             time_to_update = datetime.now() + timedelta(hours=1)
         # set up the weather glyph to display
         offscreen_canvas.SetImage(glyph, icon_x, icon_y)
         # set up the temperature display
+        graphics.DrawText(offscreen_canvas, font_temp_mm, temp_max_x, temp_max_y, font_temp_mm_color, temp_max)
         graphics.DrawText(offscreen_canvas, font_temp, temp_x, temp_y, temp_color, temperature)
+        graphics.DrawText(offscreen_canvas, font_temp_mm, temp_min_x, temp_min_y, font_temp_mm_color, temp_min)
 
         # swap the canvas with the offscreen
         offscreen_canvas = matrix.SwapOnVSync(offscreen_canvas)
@@ -102,14 +110,16 @@ def get_weather():
     icon = json['weather'][0]['icon']
     # see if there is a night glyph else get the day variant to make everything easier
     try:
-    	icon_path = WEATHER_ICONS[icon]
+        icon_path = WEATHER_ICONS[icon]
     except KeyError:
-    	icon_path = WEATHER_ICONS[icon.replace('n', 'd')]
+        icon_path = WEATHER_ICONS[icon.replace('n', 'd')]
     glyph = Image.open(icon_path).convert('RGB')
     # convert kelvin to degrees F
     temperature = json['main']['temp'] * 9 / 5 - 459.67
     temperature = "{}F".format(int(temperature))
-    return temperature, glyph
+    temp_min = "{}".format(int(json['main']['temp_min'] * 9 / 5 - 459.67))
+    temp_max = "{}".format(int(json['main']['temp_max'] * 9 / 5 - 459.67))
+    return temperature, temp_min, temp_max, glyph
 
 
 # Main function
