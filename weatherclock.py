@@ -5,19 +5,19 @@ sys.path.append('./matrix/python')
 
 import os
 import sys
-import time
-import datetime
+import time as time_sleep
 import requests
+from datetime import datetime, time, timedelta
 from rgbmatrix import graphics, RGBMatrix, RGBMatrixOptions
 from PIL import Image
 
 
 try:
-    CITY_ID = os.environ['WEATHER_CITY_ID'] 
-    API_KEY = os.environ['WEATHER_API_KEY'] 
+    CITY_ID = os.environ['WEATHER_CITY_ID']
+    API_KEY = os.environ['WEATHER_API_KEY']
 except KeyError:
     print("WEATHER_CITY_ID or WEATHER_API_KEY is not set. Exiting.")
-    sys.exit(1) 
+    sys.exit(1)
 
 WEATHER_ICONS = {
     '01d': "img/sunny.bmp",          # clear sky
@@ -28,11 +28,12 @@ WEATHER_ICONS = {
     '10d': "img/rainy.bmp",          # rain
     '11d': "img/thundery.bmp",       # thunderstorm
     '13d': "img/snowy.bmp",          # snow
-    '50d': "img/misty.bmp"           # mist
+    '50d': "img/misty.bmp",          # mist
+    '01n': "img/moony.bmp",          # night clear sky
+    '02n': "img/partly-cloudy-night" # night few clouds
 }
 
-
-# Configuration for the matrix
+# configuration for the matrix
 options = RGBMatrixOptions()
 options.rows = 16
 options.chain_length = 1
@@ -41,56 +42,56 @@ options.brightness = 50
 
 matrix = RGBMatrix(options = options)
 
+# time styling and positioning
+font = graphics.Font()
+font.LoadFont("matrix/fonts/6x10.bdf")
+time_color = graphics.Color(255, 110, 255)
+time_x, time_y = 2, 10
+
+# weather icon styling and positioning
+icon_x, icon_y = 2, 16
+
+# temp styling and positioning
+font_temp = graphics.Font()
+font_temp.LoadFont("matrix/fonts/5x7.bdf")
+temp_color = graphics.Color(0, 179, 239)
+temp_x, temp_y = 17, 24
+
 def run():
     offscreen_canvas = matrix.CreateFrameCanvas()
-    font = graphics.Font()
-    font.LoadFont("matrix/fonts/6x10.bdf")
-
-    font_temp = graphics.Font()
-    font_temp.LoadFont("matrix/fonts/5x7.bdf")
-
+    # schedule one weather update immediately
+    time_to_update = datetime.now()
+    # colon toggle for time
     colon = True
-    time_x = 2
-    time_y = 10
-    time_color = graphics.Color(255, 110, 255)
-
-    icon_x = 2
-    icon_y = 16
-
-    temp_x = 17
-    temp_y = 24
-    temp_color = graphics.Color(63, 255, 153)
-
-    temperature, weather_icon = get_weather() #270.23, "../img/sunny.bmp"
-    temperature = temperature * 9 / 5 - 459.67
-    temperature = "{}F".format(int(temperature))
-
-
     while True:
+
         offscreen_canvas.Clear()
 
-        if datetime.datetime.now().time() >= datetime.time(12, 00):
+        # when to go blank for the night
+        if datetime.now().time() >= time(12, 00) and False:
             offscreen_canvas = matrix.SwapOnVSync(offscreen_canvas)
             return
 
         # set up the time display
-        cur_time = datetime.datetime.now().strftime('%H:%M')
+        cur_time = datetime.now().strftime('%H:%M')
         if colon:
             cur_time = cur_time.replace(':', ' ')
         colon = not colon
         graphics.DrawText(offscreen_canvas, font, time_x, time_y, time_color, cur_time)
 
+        # make request for weather if enough time has passed
+        if datetime.now() >= time_to_update:
+            temperature, glyph = get_weather()
+            time_to_update = datetime.now() + timedelta(hours=1)
+        # set up the weather glyph to display
+        offscreen_canvas.SetImage(glyph, icon_x, icon_y)
         # set up the temperature display
         graphics.DrawText(offscreen_canvas, font_temp, temp_x, temp_y, temp_color, temperature)
-
-        # set up the weather glyph to display and apply to canvas
-        image = Image.open(weather_icon).convert('RGB')
-        offscreen_canvas.SetImage(image, icon_x, icon_y)
 
         # swap the canvas with the offscreen
         offscreen_canvas = matrix.SwapOnVSync(offscreen_canvas)
 
-        time.sleep(1)
+        time_sleep.sleep(1)
 
 def get_weather():
     req = requests.get("http://api.openweathermap.org/data/2.5/weather?id={}&APPID={}"
@@ -98,14 +99,22 @@ def get_weather():
     json = req.json()
     if req.status_code != 200:
         print(req, json)
-    # remove the 'n' for night icons with 'd' to make everything easier
-    icon = WEATHER_ICONS[json['weather'][0]['icon'].replace('n', 'd')]
-    return json['main']['temp'], icon
+    icon = json['weather'][0]['icon']
+    # see if there is a night glyph else get the day variant to make everything easier
+    try:
+    	icon_path = WEATHER_ICONS[icon]
+    except KeyError:
+    	icon_path = WEATHER_ICONS[icon.replace('n', 'd')]
+    glyph = Image.open(icon_path).convert('RGB')
+    # convert kelvin to degrees F
+    temperature = json['main']['temp'] * 9 / 5 - 459.67
+    temperature = "{}F".format(int(temperature))
+    return temperature, glyph
 
 
 # Main function
 if __name__ == "__main__":
     while True:
-        if datetime.datetime.now().time() >= datetime.time(7, 30):
+        if datetime.now().time() >= time(7, 30):
             run()
-        time.sleep(60)
+        time_sleep.sleep(60)
