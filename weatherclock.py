@@ -67,10 +67,11 @@ def run():
 
 
     while True:
-        if datetime.datetime.now().time() >= datetime.time(12, 00):
-            return
-
         offscreen_canvas.Clear()
+
+        if datetime.datetime.now().time() >= datetime.time(12, 00):
+            offscreen_canvas = matrix.SwapOnVSync(offscreen_canvas)
+            return
 
         # set up the time display
         cur_time = datetime.datetime.now().strftime('%H:%M')
