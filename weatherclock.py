@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 # Display a WeatherClock with double-buffering.
 import sys
-sys.path.append('./matrix/python')
-
 import os
-import sys
 import time as time_sleep
-import requests
 from datetime import datetime, time, timedelta
-from rgbmatrix import graphics, RGBMatrix, RGBMatrixOptions
+import requests
 from PIL import Image
+sys.path.append('./matrix/python')
+from rgbmatrix import graphics, RGBMatrix, RGBMatrixOptions
 
 
 try:
@@ -19,18 +17,24 @@ except KeyError:
     print("WEATHER_CITY_ID or WEATHER_API_KEY is not set. Exiting.")
     sys.exit(1)
 
+# endpoints for the weather APIs
+current_url = ("http://api.openweathermap.org/data/2.5/weather?id={}&APPID={}"
+               .format(CITY_ID, API_KEY))
+day_url = ("http://api.openweathermap.org/data/2.5/forecast/daily?id={}&APPID={}&cnt=1"
+           .format(CITY_ID, API_KEY))
+
 WEATHER_ICONS = {
-    '01d': "img/sunny.bmp",          # clear sky
-    '02d': "img/partly-cloudy.bmp",  # few clouds
-    '03d': "img/cloudy.bmp",         # scattered clouds
-    '04d': "img/cloudy.bmp",         # broken clouds
-    '09d': "img/rainy.bmp",          # shower rain
-    '10d': "img/rainy.bmp",          # rain
-    '11d': "img/thundery.bmp",       # thunderstorm
-    '13d': "img/snowy.bmp",          # snow
-    '50d': "img/misty.bmp",          # mist
-    '01n': "img/moony.bmp",          # night clear sky
-    '02n': "img/partly-cloudy-night.bmp" # night few clouds
+    '01d': "img/sunny.bmp",                 # clear sky
+    '02d': "img/partly-cloudy.bmp",         # few clouds
+    '03d': "img/cloudy.bmp",                # scattered clouds
+    '04d': "img/cloudy.bmp",                # broken clouds
+    '09d': "img/rainy.bmp",                 # shower rain
+    '10d': "img/rainy.bmp",                 # rain
+    '11d': "img/thundery.bmp",              # thunderstorm
+    '13d': "img/snowy.bmp",                 # snow
+    '50d': "img/misty.bmp",                 # mist
+    '01n': "img/moony.bmp",                 # night clear sky
+    '02n': "img/partly-cloudy-night.bmp"    # night few clouds
 }
 
 # configuration for the matrix
@@ -40,7 +44,7 @@ options.chain_length = 1
 options.parallel = 2
 options.brightness = 50
 
-matrix = RGBMatrix(options = options)
+matrix = RGBMatrix(options=options)
 
 # time styling and positioning
 font = graphics.Font()
@@ -83,7 +87,8 @@ def run():
         if colon:
             cur_time = cur_time.replace(':', ' ')
         colon = not colon
-        graphics.DrawText(offscreen_canvas, font, time_x, time_y, time_color, cur_time)
+        graphics.DrawText(offscreen_canvas, font, time_x, time_y,
+                          time_color, cur_time)
 
         # make request for weather if enough time has passed
         if datetime.now() >= time_to_update:
@@ -92,33 +97,43 @@ def run():
         # set up the weather glyph to display
         offscreen_canvas.SetImage(glyph, icon_x, icon_y)
         # set up the temperature display
-        graphics.DrawText(offscreen_canvas, font_temp_mm, temp_max_x, temp_max_y, font_temp_mm_color, temp_max)
-        graphics.DrawText(offscreen_canvas, font_temp, temp_x, temp_y, temp_color, temperature)
-        graphics.DrawText(offscreen_canvas, font_temp_mm, temp_min_x, temp_min_y, font_temp_mm_color, temp_min)
+        graphics.DrawText(offscreen_canvas, font_temp_mm, temp_max_x,
+                          temp_max_y, font_temp_mm_color, temp_max)
+        graphics.DrawText(offscreen_canvas, font_temp, temp_x, temp_y,
+                          temp_color, temperature)
+        graphics.DrawText(offscreen_canvas, font_temp_mm, temp_min_x,
+                          temp_min_y, font_temp_mm_color, temp_min)
 
         # swap the canvas with the offscreen
         offscreen_canvas = matrix.SwapOnVSync(offscreen_canvas)
 
         time_sleep.sleep(1)
 
+def k_to_f(kelvin):
+    return int(kelvin * 9 / 5 - 459.67)
+
 def get_weather():
-    req = requests.get("http://api.openweathermap.org/data/2.5/weather?id={}&APPID={}"
-                       .format(CITY_ID, API_KEY))
+    req = requests.get(current_url)
     json = req.json()
     if req.status_code != 200:
         print(req, json)
     icon = json['weather'][0]['icon']
-    # see if there is a night glyph else get the day variant to make everything easier
+    # see if there is a night glyph else get the day variant
     try:
         icon_path = WEATHER_ICONS[icon]
     except KeyError:
         icon_path = WEATHER_ICONS[icon.replace('n', 'd')]
     glyph = Image.open(icon_path).convert('RGB')
-    # convert kelvin to degrees F
-    temperature = json['main']['temp'] * 9 / 5 - 459.67
-    temperature = "{}F".format(int(temperature))
-    temp_min = "{}".format(int(json['main']['temp_min'] * 9 / 5 - 459.67))
-    temp_max = "{}".format(int(json['main']['temp_max'] * 9 / 5 - 459.67))
+    temperature = str(k_to_f(json['main']['temp'])) + "F"
+
+    # make a second requst to the daily forecast for temp high and low
+    req = requests.get(day_url)
+    json = req.json()
+    if req.status_code != 200:
+        print(req, json)
+    temp_min = str(k_to_f(json['list'][0]['temp']['min']))
+    temp_max = str(k_to_f(json['list'][0]['temp']['max']))
+
     return temperature, temp_min, temp_max, glyph
 
 
