@@ -44,8 +44,6 @@ options.chain_length = 1
 options.parallel = 2
 options.brightness = 50
 
-matrix = RGBMatrix(options=options)
-
 # time styling and positioning
 font = graphics.Font()
 font.LoadFont("matrix/fonts/6x10.bdf")
@@ -67,7 +65,8 @@ font_temp_mm_color = graphics.Color(100, 150, 0)
 temp_max_x, temp_max_y = 20, 17
 temp_min_x, temp_min_y = 20, 30
 
-def run():
+def run(end):
+    matrix = RGBMatrix(options=options)
     offscreen_canvas = matrix.CreateFrameCanvas()
     # schedule one weather update immediately
     time_to_update = datetime.now()
@@ -78,7 +77,7 @@ def run():
         offscreen_canvas.Clear()
 
         # when to go blank for the night
-        if datetime.now().time() >= time(20, 00):
+        if datetime.now().time() >= time(end, 00):
             offscreen_canvas = matrix.SwapOnVSync(offscreen_canvas)
             return
 
@@ -139,7 +138,8 @@ def get_weather():
 
 # Main function
 if __name__ == "__main__":
+    end = 20
     while True:
-        if datetime.now().time() >= time(7, 30):
-            run()
+        if time(end, 00) > datetime.now().time() >= time(7, 30):
+            run(end)
         time_sleep.sleep(60)
