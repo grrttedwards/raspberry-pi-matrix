@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # Display a WeatherClock with double-buffering.
 import sys
 import os
@@ -15,7 +15,7 @@ try:
     API_KEY = os.environ['WEATHER_API_KEY']
 except KeyError:
     print("WEATHER_CITY_ID or WEATHER_API_KEY is not set. Exiting.")
-    sys.exit(1)
+    exit(1)
 
 # endpoints for the weather APIs
 current_url = ("http://api.openweathermap.org/data/2.5/weather?id={}&APPID={}"
@@ -37,47 +37,48 @@ WEATHER_ICONS = {
     '02n': "img/partly-cloudy-night.bmp"    # night few clouds
 }
 
-# configuration for the matrix
-options = RGBMatrixOptions()
-options.rows = 16
-options.chain_length = 1
-options.parallel = 2
-options.brightness = 50
 
-# time styling and positioning
-font = graphics.Font()
-font.LoadFont("matrix/fonts/6x10.bdf")
-time_color = graphics.Color(255, 110, 255)
-time_x, time_y = 2, 10
+def run(end_time):
+    # configuration for the matrix
+    matrix_options = RGBMatrixOptions()
+    matrix_options.rows = 16
+    matrix_options.chain_length = 1
+    matrix_options.parallel = 2
+    matrix_options.brightness = 50
 
-# weather icon styling and positioning
-icon_x, icon_y = 2, 16
+    # time styling and positioning
+    time_font = graphics.Font()
+    time_font.LoadFont("matrix/fonts/6x10.bdf")
+    time_color = graphics.Color(255, 110, 255)
+    time_x, time_y = 1, 10
 
-# temp styling and positioning
-font_temp = graphics.Font()
-font_temp.LoadFont("matrix/fonts/5x7.bdf")
-temp_color = graphics.Color(0, 179, 239)
-temp_x, temp_y = 17, 24
+    # weather icon styling and positioning
+    icon_x, icon_y = 2, 16
 
-font_temp_mm = graphics.Font()
-font_temp_mm.LoadFont("matrix/fonts/4x6.bdf")
-font_temp_mm_color = graphics.Color(100, 150, 0)
-temp_max_x, temp_max_y = 20, 17
-temp_min_x, temp_min_y = 20, 30
+    # temp styling and positioning
+    temp_font = graphics.Font()
+    temp_font.LoadFont("matrix/fonts/5x7.bdf")
+    temp_color = graphics.Color(0, 179, 239)
+    temp_x, temp_y = 17, 24
 
-def run(end):
-    matrix = RGBMatrix(options=options)
+    temp_mm_font = graphics.Font()
+    temp_mm_font.LoadFont("matrix/fonts/4x6.bdf")
+    temp_mm_color = graphics.Color(100, 150, 0)
+    temp_max_x, temp_max_y = 20, 17
+    temp_min_x, temp_min_y = 20, 30
+
+    matrix = RGBMatrix(options=matrix_options)
     offscreen_canvas = matrix.CreateFrameCanvas()
     # schedule one weather update immediately
     time_to_update = datetime.now()
     # colon toggle for time
     colon = True
-    while True:
 
+    while True:
         offscreen_canvas.Clear()
 
         # when to go blank for the night
-        if datetime.now().time() >= time(end, 00):
+        if datetime.now().time() >= time(end_time, 00):
             offscreen_canvas = matrix.SwapOnVSync(offscreen_canvas)
             return
 
@@ -86,7 +87,7 @@ def run(end):
         if colon:
             cur_time = cur_time.replace(':', ' ')
         colon = not colon
-        graphics.DrawText(offscreen_canvas, font, time_x, time_y,
+        graphics.DrawText(offscreen_canvas, time_font, time_x, time_y,
                           time_color, cur_time)
 
         # make request for weather if enough time has passed
@@ -96,12 +97,12 @@ def run(end):
         # set up the weather glyph to display
         offscreen_canvas.SetImage(glyph, icon_x, icon_y)
         # set up the temperature display
-        graphics.DrawText(offscreen_canvas, font_temp_mm, temp_max_x,
-                          temp_max_y, font_temp_mm_color, temp_max)
-        graphics.DrawText(offscreen_canvas, font_temp, temp_x, temp_y,
+        graphics.DrawText(offscreen_canvas, temp_mm_font, temp_max_x,
+                          temp_max_y, temp_mm_color, temp_max)
+        graphics.DrawText(offscreen_canvas, temp_font, temp_x, temp_y,
                           temp_color, temperature)
-        graphics.DrawText(offscreen_canvas, font_temp_mm, temp_min_x,
-                          temp_min_y, font_temp_mm_color, temp_min)
+        graphics.DrawText(offscreen_canvas, temp_mm_font, temp_min_x,
+                          temp_min_y, temp_mm_color, temp_min)
 
         # swap the canvas with the offscreen
         offscreen_canvas = matrix.SwapOnVSync(offscreen_canvas)
@@ -116,6 +117,7 @@ def get_weather():
     json = req.json()
     if req.status_code != 200:
         print(req, json)
+        exit(1)
     icon = json['weather'][0]['icon']
     # see if there is a night glyph else get the day variant
     try:
@@ -139,7 +141,10 @@ def get_weather():
 # Main function
 if __name__ == "__main__":
     end = 20
-    while True:
-        if time(end, 00) > datetime.now().time() >= time(7, 30):
-            run(end)
-        time_sleep.sleep(60)
+    try:
+        while True:
+            if time(end, 00) > datetime.now().time() >= time(7, 30):
+                run(end)
+            time_sleep.sleep(60)
+    except:
+        print(sys.exc_info()[0])
