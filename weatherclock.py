@@ -37,38 +37,40 @@ WEATHER_ICONS = {
     '02n': "img/partly-cloudy-night.bmp"    # night few clouds
 }
 
+# configuration for the matrix
+matrix_options = RGBMatrixOptions()
+matrix_options.rows = 16
+matrix_options.chain_length = 1
+matrix_options.parallel = 2
+matrix_options.brightness = 50
+
+# time styling and positioning
+time_font = graphics.Font()
+time_font.LoadFont("matrix/fonts/6x10.bdf")
+time_color = graphics.Color(255, 110, 255)
+time_x, time_y = 1, 10
+
+# weather icon styling and positioning
+icon_x, icon_y = 2, 16
+
+# temp styling and positioning
+temp_font = graphics.Font()
+temp_font.LoadFont("matrix/fonts/5x7.bdf")
+temp_color = graphics.Color(0, 179, 239)
+temp_x, temp_y = 17, 24
+
+temp_mm_font = graphics.Font()
+temp_mm_font.LoadFont("matrix/fonts/4x6.bdf")
+temp_mm_color = graphics.Color(100, 150, 0)
+temp_max_x, temp_max_y = 20, 17
+temp_min_x, temp_min_y = 20, 30
+
+matrix = RGBMatrix(options=matrix_options)
+
 
 def run(end_time):
-    # configuration for the matrix
-    matrix_options = RGBMatrixOptions()
-    matrix_options.rows = 16
-    matrix_options.chain_length = 1
-    matrix_options.parallel = 2
-    matrix_options.brightness = 50
-
-    # time styling and positioning
-    time_font = graphics.Font()
-    time_font.LoadFont("matrix/fonts/6x10.bdf")
-    time_color = graphics.Color(255, 110, 255)
-    time_x, time_y = 1, 10
-
-    # weather icon styling and positioning
-    icon_x, icon_y = 2, 16
-
-    # temp styling and positioning
-    temp_font = graphics.Font()
-    temp_font.LoadFont("matrix/fonts/5x7.bdf")
-    temp_color = graphics.Color(0, 179, 239)
-    temp_x, temp_y = 17, 24
-
-    temp_mm_font = graphics.Font()
-    temp_mm_font.LoadFont("matrix/fonts/4x6.bdf")
-    temp_mm_color = graphics.Color(100, 150, 0)
-    temp_max_x, temp_max_y = 20, 17
-    temp_min_x, temp_min_y = 20, 30
-
-    matrix = RGBMatrix(options=matrix_options)
     offscreen_canvas = matrix.CreateFrameCanvas()
+
     # schedule one weather update immediately
     time_to_update = datetime.now()
     # colon toggle for time
@@ -79,7 +81,7 @@ def run(end_time):
 
         # when to go blank for the night
         if datetime.now().time() >= time(end_time, 00):
-            offscreen_canvas = matrix.SwapOnVSync(offscreen_canvas)
+            matrix.Clear()
             return
 
         # set up the time display
@@ -141,10 +143,8 @@ def get_weather():
 # Main function
 if __name__ == "__main__":
     end = 20
-    try:
-        while True:
-            if time(end, 00) > datetime.now().time() >= time(7, 30):
-                run(end)
-            time_sleep.sleep(60)
-    except:
-        print(sys.exc_info()[0])
+    while True:
+        print(datetime.now().time())
+        if time(end, 00) > datetime.now().time() >= time(7, 30):
+            run(end)
+        time_sleep.sleep(1)
