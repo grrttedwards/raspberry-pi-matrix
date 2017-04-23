@@ -90,52 +90,61 @@ class WeatherClock(BaseScene):
 
         return temperature, temp_min, temp_max, glyph
 
-    def run(self, end_time):
+    def draw_time(self, colon):
+        # set up the time display
+        cur_time = dt.datetime.now().strftime('%H:%M')
+        if colon:
+            cur_time = cur_time.replace(':', ' ')
+        # enough height to clear the whole time area
+        for y_val in range(0, 11):
+            graphics.DrawLine(self.matrix, 0, y_val, 32, y_val,
+                              graphics.Color(0, 0, 0))
+
+        graphics.DrawText(self.matrix, self.time_font, self.time_x,
+                          self.time_y, self.time_color, cur_time)
+
+    def get_and_draw_weather(self):
+        temp, temp_min, temp_max, glyph = self.__get_weather()
+        self.matrix.Clear()
+        # set up the weather glyph to display
+        self.matrix.SetImage(glyph, self.icon_x, self.icon_y)
+        # set up the temperature display
+        graphics.DrawText(self.matrix, self.temp_mm_font,
+                          self.temp_max_x, self.temp_max_y,
+                          self.temp_mm_color, temp_max)
+        graphics.DrawText(self.matrix, self.temp_font,
+                          self.temp_x, self.temp_y,
+                          self.temp_color, temp)
+        graphics.DrawText(self.matrix, self.temp_mm_font,
+                          self.temp_min_x, self.temp_min_y,
+                          self.temp_mm_color, temp_min)
+
+    def run(self):
+        # 24-hour hour of when to stop
+        end_time = 20
         while True:
             if dt.time(end_time, 00) > \
                     dt.datetime.now().time() >= dt.time(7, 30):
+
                 # schedule one weather update immediately
                 time_to_update = dt.datetime.now()
+
                 # colon toggle for time
                 colon = True
-
                 while True:
                     # when to go blank for the night
                     if dt.datetime.now().time() >= dt.time(end_time, 00):
                         self.matrix.Clear()
                         break
 
-                    # make request for weather if enough time has passed
+                    # do weather if enough time has passed
                     if dt.datetime.now() >= time_to_update:
-                        temp, temp_min, temp_max, glyph = self.__get_weather()
+                        self.get_and_draw_weather()
                         time_to_update = dt.datetime.now() + \
                             dt.timedelta(hours=1)
-                        self.matrix.Clear()
-                        # set up the weather glyph to display
-                        self.matrix.SetImage(glyph, self.icon_x, self.icon_y)
-                        # set up the temperature display
-                        graphics.DrawText(self.matrix, self.temp_mm_font,
-                                          self.temp_max_x, self.temp_max_y,
-                                          self.temp_mm_color, temp_max)
-                        graphics.DrawText(self.matrix, self.temp_font,
-                                          self.temp_x, self.temp_y,
-                                          self.temp_color, temp)
-                        graphics.DrawText(self.matrix, self.temp_mm_font,
-                                          self.temp_min_x, self.temp_min_y,
-                                          self.temp_mm_color, temp_min)
 
-                    # set up the time display
-                    cur_time = dt.datetime.now().strftime('%H:%M')
-                    if colon:
-                        cur_time = cur_time.replace(':', ' ')
+                    self.draw_time(colon)
                     colon = not colon
-                    # enough height to clear the whole time area
-                    for y_val in range(0, 11):
-                        graphics.DrawLine(self.matrix, 0, y_val, 32, y_val,
-                                          graphics.Color(0, 0, 0))
-
-                    graphics.DrawText(self.matrix, self.time_font, self.time_x,
-                                      self.time_y, self.time_color, cur_time)
 
                     time.sleep(1)
             else:
@@ -144,6 +153,4 @@ class WeatherClock(BaseScene):
 
 # Main function
 if __name__ == "__main__":
-    end_time = 20
-    weather_clock = WeatherClock()
-    weather_clock.run(end_time)
+    WeatherClock().run()
