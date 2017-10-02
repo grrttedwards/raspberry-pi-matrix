@@ -24,23 +24,25 @@ class WeatherClock(BaseScene):
     day_url = ("http://api.openweathermap.org/data/2.5/forecast/daily?id={}&APPID={}&cnt=1"
                .format(city_id, api_key))
 
+    img_path = "../img/"
     weather_icons = {
-        '01d': "img/sunny.bmp",                 # clear sky
-        '02d': "img/partly-cloudy.bmp",         # few clouds
-        '03d': "img/cloudy.bmp",                # scattered clouds
-        '04d': "img/cloudy.bmp",                # broken clouds
-        '09d': "img/rainy.bmp",                 # shower rain
-        '10d': "img/rainy.bmp",                 # rain
-        '11d': "img/thundery.bmp",              # thunderstorm
-        '13d': "img/snowy.bmp",                 # snow
-        '50d': "img/misty.bmp",                 # mist
-        '01n': "img/moony.bmp",                 # night clear sky
-        '02n': "img/partly-cloudy-night.bmp"    # night few clouds
+        '01d': img_path + "sunny.bmp",                 # clear sky
+        '02d': img_path + "partly-cloudy.bmp",         # few clouds
+        '03d': img_path + "cloudy.bmp",                # scattered clouds
+        '04d': img_path + "cloudy.bmp",                # broken clouds
+        '09d': img_path + "rainy.bmp",                 # shower rain
+        '10d': img_path + "rainy.bmp",                 # rain
+        '11d': img_path + "thundery.bmp",              # thunderstorm
+        '13d': img_path + "snowy.bmp",                 # snow
+        '50d': img_path + "misty.bmp",                 # mist
+        '01n': img_path + "moony.bmp",                 # night clear sky
+        '02n': img_path + "partly-cloudy-night.bmp"    # night few clouds
     }
 
+    font_path = "../matrix/fonts/"
     # time styling and positioning
     time_font = graphics.Font()
-    time_font.LoadFont("../matrix/fonts/6x10.bdf")
+    time_font.LoadFont(font_path + "6x10.bdf")
     time_color = graphics.Color(255, 110, 255)
     time_x, time_y = 1, 10
 
@@ -49,12 +51,12 @@ class WeatherClock(BaseScene):
 
     # temp styling and positioning
     temp_font = graphics.Font()
-    temp_font.LoadFont("../matrix/fonts/5x7.bdf")
+    temp_font.LoadFont(font_path + "5x7.bdf")
     temp_color = graphics.Color(0, 179, 239)
     temp_x, temp_y = 17, 24
 
     temp_mm_font = graphics.Font()
-    temp_mm_font.LoadFont("../matrix/fonts/4x6.bdf")
+    temp_mm_font.LoadFont(font_path + "4x6.bdf")
     temp_mm_color = graphics.Color(100, 150, 0)
     temp_max_x, temp_max_y = 20, 17
     temp_min_x, temp_min_y = 20, 30
