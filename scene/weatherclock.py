@@ -40,7 +40,7 @@ class WeatherClock(BaseScene):
 
     # time styling and positioning
     time_font = graphics.Font()
-    time_font.LoadFont("matrix/fonts/6x10.bdf")
+    time_font.LoadFont("../matrix/fonts/6x10.bdf")
     time_color = graphics.Color(255, 110, 255)
     time_x, time_y = 1, 10
 
@@ -49,12 +49,12 @@ class WeatherClock(BaseScene):
 
     # temp styling and positioning
     temp_font = graphics.Font()
-    temp_font.LoadFont("matrix/fonts/5x7.bdf")
+    temp_font.LoadFont("../matrix/fonts/5x7.bdf")
     temp_color = graphics.Color(0, 179, 239)
     temp_x, temp_y = 17, 24
 
     temp_mm_font = graphics.Font()
-    temp_mm_font.LoadFont("matrix/fonts/4x6.bdf")
+    temp_mm_font.LoadFont("../matrix/fonts/4x6.bdf")
     temp_mm_color = graphics.Color(100, 150, 0)
     temp_max_x, temp_max_y = 20, 17
     temp_min_x, temp_min_y = 20, 30
