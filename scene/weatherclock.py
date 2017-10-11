@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
+
 # Display a WeatherClock with double-buffering.
 import os
 import time
