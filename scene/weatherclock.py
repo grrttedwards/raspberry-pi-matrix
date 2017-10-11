@@ -18,8 +18,8 @@ class WeatherClock(BaseScene):
         try:
             self.city_id = self.config['weather']['city_id']
             self.api_key = self.config['weather']['api_key']
-            self.start_time = self.config['time']['start']
-            self.end_time = self.config['time']['end']
+            self.start_time = (self.config['time']['start_hr'], self.config['time']['start_min'])
+            self.end_time = (self.config['time']['end_hr'], self.config['time']['end_min'])
         except KeyError as err:
             print("Settings file error: {0}".format(err))
             exit(1)
