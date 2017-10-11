@@ -12,32 +12,37 @@ from PIL import Image
 
 class WeatherClock(BaseScene):
 
-    try:
-        city_id = os.environ['WEATHER_CITY_ID']
-        api_key = os.environ['WEATHER_API_KEY']
-    except KeyError:
-        print("WEATHER_CITY_ID or WEATHER_API_KEY is not set. Exiting.")
-        exit(1)
+    def __init__(self, *args, **kwargs):
+        super(WeatherClock, self).__init__(*args, **kwargs)
 
-    # endpoints for the weather APIs
-    current_url = ("http://api.openweathermap.org/data/2.5/weather?id={}&APPID={}"
-                   .format(city_id, api_key))
-    day_url = ("http://api.openweathermap.org/data/2.5/forecast/daily?id={}&APPID={}&cnt=1"
-               .format(city_id, api_key))
+        try:
+            self.city_id = config['weather']['city_id']
+            self.api_key = config['weather']['api_key']
+            self.start_time = config['time']['start']
+            self.end_time = config['time']['end']
+        except KeyError as err:
+            print("Settings file error: {0}".format(err))
+            exit(1)
+
+        # endpoints for the weather APIs
+        self.current_url = ("http://api.openweathermap.org/data/2.5/weather?id={}&APPID={}"
+                    .format(self.city_id, self.api_key))
+        self.day_url = ("http://api.openweathermap.org/data/2.5/forecast/daily?id={}&APPID={}&cnt=1"
+               .format(self.city_id, self.api_key))
 
     img_path = "../img/"
     weather_icons = {
-        '01d': img_path + "sunny.bmp",                 # clear sky
-        '02d': img_path + "partly-cloudy.bmp",         # few clouds
-        '03d': img_path + "cloudy.bmp",                # scattered clouds
-        '04d': img_path + "cloudy.bmp",                # broken clouds
-        '09d': img_path + "rainy.bmp",                 # shower rain
-        '10d': img_path + "rainy.bmp",                 # rain
-        '11d': img_path + "thundery.bmp",              # thunderstorm
-        '13d': img_path + "snowy.bmp",                 # snow
-        '50d': img_path + "misty.bmp",                 # mist
-        '01n': img_path + "moony.bmp",                 # night clear sky
-        '02n': img_path + "partly-cloudy-night.bmp"    # night few clouds
+        '01d': "sunny.bmp",                 # clear sky
+        '02d': "partly-cloudy.bmp",         # few clouds
+        '03d': "cloudy.bmp",                # scattered clouds
+        '04d': "cloudy.bmp",                # broken clouds
+        '09d': "rainy.bmp",                 # shower rain
+        '10d': "rainy.bmp",                 # rain
+        '11d': "thundery.bmp",              # thunderstorm
+        '13d': "snowy.bmp",                 # snow
+        '50d': "misty.bmp",                 # mist
+        '01n': "moony.bmp",                 # night clear sky
+        '02n': "partly-cloudy-night.bmp"    # night few clouds
     }
 
     font_path = "../matrix/fonts/"
@@ -62,34 +67,36 @@ class WeatherClock(BaseScene):
     temp_max_x, temp_max_y = 20, 17
     temp_min_x, temp_min_y = 20, 30
 
-    def __init__(self, *args, **kwargs):
-        super(WeatherClock, self).__init__(*args, **kwargs)
-
     def __k_to_f(self, kelvin):
-        return int(kelvin * 9 / 5 - 459.67)
+        return str(kelvin * 9 / 5 - 459.67)
 
-    def __get_weather(self):
-        req = requests.get(self.current_url)
+    def get_weather_icon(self, icon):
+        try:
+            icon_path = self.weather_icons[icon]
+        except KeyError:
+            # if no night glyph then get the day variant
+            icon_path = self.weather_icons[icon.replace('n', 'd')]
+        return self.img_path + icon_path
+
+    def __make_request(self, url):
+        req = requests.get(url)
         json = req.json()
         if req.status_code != 200:
             print(req, json)
             exit(1)
-        icon = json['weather'][0]['icon']
-        # see if there is a night glyph else get the day variant
-        try:
-            icon_path = self.weather_icons[icon]
-        except KeyError:
-            icon_path = self.weather_icons[icon.replace('n', 'd')]
-        glyph = Image.open(icon_path).convert('RGB')
-        temperature = str(self.__k_to_f(json['main']['temp'])) + "F"
+        return json
 
-        # make a second requst to the daily forecast for temp high and low
-        req = requests.get(self.day_url)
-        json = req.json()
-        if req.status_code != 200:
-            print(req, json)
-        temp_min = str(self.__k_to_f(json['list'][0]['temp']['min']))
-        temp_max = str(self.__k_to_f(json['list'][0]['temp']['max']))
+    def __get_weather(self):
+        json = self.__make_request(self.current_url)
+        icon = json['weather'][0]['icon']
+        icon_path = self.get_weather_icon(icon)
+        glyph = Image.open(icon_path).convert('RGB')
+        temperature = self.__k_to_f(json['main']['temp']) + "F"
+
+        # make a second request to the daily forecast for temp high and low
+        json = self.__make_request(self.day_url)
+        temp_min = self.__k_to_f(json['list'][0]['temp']['min'])
+        temp_max = self.__k_to_f(json['list'][0]['temp']['max'])
 
         return temperature, temp_min, temp_max, glyph
 
@@ -123,11 +130,9 @@ class WeatherClock(BaseScene):
                           self.temp_mm_color, temp_min)
 
     def run(self):
-        # 24-hour hour of when to stop
-        end_time = 20
         while True:
-            if dt.time(end_time, 00) > \
-                    dt.datetime.now().time() >= dt.time(7, 30):
+            if dt.time(*self.end_time) > \
+                    dt.datetime.now().time() >= dt.time(*self.start_time):
 
                 # schedule one weather update immediately
                 time_to_update = dt.datetime.now()
@@ -136,7 +141,7 @@ class WeatherClock(BaseScene):
                 colon = True
                 while True:
                     # when to go blank for the night
-                    if dt.datetime.now().time() >= dt.time(end_time, 00):
+                    if dt.datetime.now().time() >= dt.time(*self.end_time):
                         self.matrix.Clear()
                         break
 
