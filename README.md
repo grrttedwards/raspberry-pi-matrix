@@ -20,9 +20,15 @@ sudo make install-python PYTHON=$(which python3)
 ## Setup
 Edit the file `settings.ini` with your [OpenWeatherMap API key](https://openweathermap.org/api) and the city code for your location.
 ```
-api_key=your_api_key
-city_
+[weather]
+api_key = YOUR_API_KEY
+city_id = YOUR_CITY_ID
 
+[time]
+start_hr = 7
+start_min = 30
+end_hr = 22
+end_min = 0
 ```
 
 ## Usage
