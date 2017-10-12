@@ -68,7 +68,7 @@ class WeatherClock(BaseScene):
     temp_min_x, temp_min_y = 20, 30
 
     def __k_to_f(self, kelvin):
-        return str(kelvin * 9 / 5 - 459.67)
+        return str(round(kelvin * 9 / 5 - 459.67))
 
     def get_weather_icon(self, icon):
         try:
