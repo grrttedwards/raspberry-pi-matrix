@@ -19,3 +19,8 @@ class BaseScene(object):
         self.config.read('../settings.ini')
 
         self.matrix = RGBMatrix(options=self.matrix_options)
+
+    def settings_error(self, error):
+        """Called when an error was encountered parsing the settings file"""
+        print("Settings file error: {0}".format(error))
+        sys.exit(1)

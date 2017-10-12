@@ -2,6 +2,7 @@
 
 # Display a WeatherClock with double-buffering.
 import os
+import sys
 import time
 import datetime as dt
 import requests
@@ -12,8 +13,8 @@ from PIL import Image
 
 class WeatherClock(BaseScene):
 
-    def __init__(self, *args, **kwargs):
-        super(WeatherClock, self).__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
 
         try:
             self.city_id = self.config['weather']['city_id']
@@ -21,8 +22,7 @@ class WeatherClock(BaseScene):
             self.start_time = (self.config['time'].getint('start_hr'), self.config['time'].getint('start_min'))
             self.end_time = (self.config['time'].getint('end_hr'), self.config['time'].getint('end_min'))
         except KeyError as err:
-            print("Settings file error: {0}".format(err))
-            exit(1)
+            self.settings_error(err)
 
         # endpoints for the weather APIs
         self.current_url = ("http://api.openweathermap.org/data/2.5/weather?id={}&APPID={}"
@@ -83,7 +83,7 @@ class WeatherClock(BaseScene):
         json = req.json()
         if req.status_code != 200:
             print(req, json)
-            exit(1)
+            sys.exit(1)
         return json
 
     def __get_weather(self):
