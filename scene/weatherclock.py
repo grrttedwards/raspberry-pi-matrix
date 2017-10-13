@@ -30,7 +30,7 @@ class WeatherClock(BaseScene):
         self.day_url = ("http://api.openweathermap.org/data/2.5/forecast/daily?id={}&APPID={}&cnt=1"
                .format(self.city_id, self.api_key))
 
-    img_path = "../img/"
+    img_path = "../img/weather/"
     weather_icons = {
         '01d': "sunny.bmp",                 # clear sky
         '02d': "partly-cloudy.bmp",         # few clouds
