@@ -78,13 +78,23 @@ class WeatherClock(BaseScene):
             icon_path = self.weather_icons[icon.replace('n', 'd')]
         return self.img_path + icon_path
 
+    def __backoff(self):
+        for attempts in range(5):
+            # raise the power of exponential backoff
+            yield 5**attempts
+
     def __make_request(self, url):
-        req = requests.get(url)
-        json = req.json()
-        if req.status_code != 200:
-            print(req, json)
-            sys.exit(1)
-        return json
+        backoff = self.__backoff()
+        for attempt in backoff:
+            try:
+                req = requests.get(url)
+                json = req.json()
+                return json
+            except Exception as e:
+                print(e)
+                print("Attempting {0}-second backoff...".format(attempt))
+                time.sleep(attempt)
+        raise Exception("5 requests failed.")
 
     def __get_weather(self):
         json = self.__make_request(self.current_url)
