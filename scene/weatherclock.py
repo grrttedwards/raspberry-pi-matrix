@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
 # Display a WeatherClock with double-buffering.
-import os
 import sys
+import os
 import time
 import datetime as dt
 import requests
 from base import BaseScene
 from rgbmatrix import graphics
 from PIL import Image
+sys.path.append('../')
+from animators import snow
 
 
 class WeatherClock(BaseScene):
@@ -29,6 +31,11 @@ class WeatherClock(BaseScene):
                     .format(self.city_id, self.api_key))
         self.day_url = ("http://api.openweathermap.org/data/2.5/forecast/daily?id={}&APPID={}&cnt=1"
                .format(self.city_id, self.api_key))
+
+        self.last_weather = None
+        self.animator = None
+        self.offscreen_canvas = self.matrix.CreateFrameCanvas()
+
 
     img_path = "../img/weather/"
     weather_icons = {
@@ -76,7 +83,7 @@ class WeatherClock(BaseScene):
         except KeyError:
             # if no night glyph then get the day variant
             icon_path = self.weather_icons[icon.replace('n', 'd')]
-        return self.img_path + icon_path
+        return icon_path
 
     def __backoff(self):
         for attempts in range(5):
@@ -99,7 +106,7 @@ class WeatherClock(BaseScene):
     def __get_weather(self):
         json = self.__make_request(self.current_url)
         icon = json['weather'][0]['icon']
-        icon_path = self.get_weather_icon(icon)
+        icon_path = self.img_path + self.get_weather_icon(icon)
         glyph = Image.open(icon_path).convert('RGB')
         temperature = self.__k_to_f(json['main']['temp']) + "F"
 
@@ -108,34 +115,41 @@ class WeatherClock(BaseScene):
         temp_min = self.__k_to_f(json['list'][0]['temp']['min'])
         temp_max = self.__k_to_f(json['list'][0]['temp']['max'])
 
-        return temperature, temp_min, temp_max, glyph
+        self.last_weather = (temperature, temp_min, temp_max, glyph, self.get_weather_icon(icon))
 
-    def draw_time(self, colon):
+    def draw_time(self):
         # set up the time display
-        cur_time = dt.datetime.now().strftime('%H:%M')
-        if colon:
-            cur_time = cur_time.replace(':', ' ')
-        # enough height to clear the whole time area
-        for y_val in range(0, 11):
-            graphics.DrawLine(self.matrix, 0, y_val, 32, y_val,
-                              graphics.Color(0, 0, 0))
+        cur_time = dt.datetime.now().strftime('%H %M')
 
-        graphics.DrawText(self.matrix, self.time_font, self.time_x,
+        graphics.DrawText(self.offscreen_canvas, self.time_font, self.time_x,
                           self.time_y, self.time_color, cur_time)
 
-    def get_and_draw_weather(self):
-        temp, temp_min, temp_max, glyph = self.__get_weather()
-        self.matrix.Clear()
-        # set up the weather glyph to display
-        self.matrix.SetImage(glyph, self.icon_x, self.icon_y)
+    def draw_weather(self):
+        temp, temp_min, temp_max, glyph, icon_path = self.last_weather
+
+        if icon_path == "snowy.bmp":
+            if self.animator is None:
+                self.animator = snow.SnowAnimator()
+            frame = self.animator.get_frame()
+            for y, row in enumerate(frame):
+                for x, pixel in enumerate(row):
+                    if pixel:
+                        self.offscreen_canvas.SetPixel(x, y, 255, 255, 255)
+                    else:
+                        self.offscreen_canvas.SetPixel(x, y, 0, 0, 0)
+        else:
+            self.animator = None
+
+
+        self.offscreen_canvas.SetImage(glyph, self.icon_x, self.icon_y)
         # set up the temperature display
-        graphics.DrawText(self.matrix, self.temp_mm_font,
+        graphics.DrawText(self.offscreen_canvas, self.temp_mm_font,
                           self.temp_max_x, self.temp_max_y,
                           self.temp_mm_color, temp_max)
-        graphics.DrawText(self.matrix, self.temp_font,
+        graphics.DrawText(self.offscreen_canvas, self.temp_font,
                           self.temp_x, self.temp_y,
                           self.temp_color, temp)
-        graphics.DrawText(self.matrix, self.temp_mm_font,
+        graphics.DrawText(self.offscreen_canvas, self.temp_mm_font,
                           self.temp_min_x, self.temp_min_y,
                           self.temp_mm_color, temp_min)
 
@@ -157,14 +171,16 @@ class WeatherClock(BaseScene):
 
                     # do weather if enough time has passed
                     if dt.datetime.now() >= time_to_update:
-                        self.get_and_draw_weather()
+                        self.__get_weather()
                         time_to_update = dt.datetime.now() + \
                             dt.timedelta(hours=1)
 
-                    self.draw_time(colon)
-                    colon = not colon
+                    self.offscreen_canvas.Clear()
+                    self.draw_weather()
+                    self.draw_time()
+                    self.offscreen_canvas = self.matrix.SwapOnVSync(self.offscreen_canvas)
 
-                    time.sleep(1)
+                    time.sleep(0.5)
             else:
                 time.sleep(1)
 
