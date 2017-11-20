@@ -95,6 +95,8 @@ class WeatherClock(BaseScene):
         for attempt in backoff:
             try:
                 req = requests.get(url)
+                if not req.ok:
+                    raise Exception(req.status_code, req.content)
                 json = req.json()
                 return json
             except Exception as e:
