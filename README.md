@@ -37,5 +37,5 @@ end_min = 0
 ## How beautiful
 Weather effects!
 
-![example beautifulness snow](snowing.gif)
+![example beautifulness snow](snowing.webp)
 ![example beautifulness sun](sunny.gif)
