@@ -35,5 +35,7 @@ end_min = 0
 ```sudo ./weatherclock.py```
 
 ## How beautiful
+Weather effects!
 
-![example beautifulness](example.gif)
+![example beautifulness snow](snowing.gif)
+![example beautifulness sun](sunny.gif)
