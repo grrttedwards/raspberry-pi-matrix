@@ -27,9 +27,10 @@ class WeatherClock(BaseScene):
             self.settings_error(err)
 
         # endpoints for the weather APIs
-        self.current_url = ("http://api.openweathermap.org/data/2.5/weather?id={}&APPID={}"
+        self.base_url = 'http://api.openweathermap.org/data/2.5'
+        self.current_url = (self.base_url + '/weather?id={}&APPID={}'
                     .format(self.city_id, self.api_key))
-        self.day_url = ("http://api.openweathermap.org/data/2.5/forecast/daily?id={}&APPID={}&cnt=1"
+        self.day_url = (self.base_url + '/data/2.5/forecast/daily?id={}&APPID={}&cnt=1'
                .format(self.city_id, self.api_key))
 
         self.last_weather = None
@@ -37,25 +38,25 @@ class WeatherClock(BaseScene):
         self.offscreen_canvas = self.matrix.CreateFrameCanvas()
 
 
-    img_path = "../img/weather/"
+    img_path = '../img/weather/'
     weather_icons = {
-        '01d': "sunny.bmp",                 # clear sky
-        '02d': "partly-cloudy.bmp",         # few clouds
-        '03d': "cloudy.bmp",                # scattered clouds
-        '04d': "cloudy.bmp",                # broken clouds
-        '09d': "rainy.bmp",                 # shower rain
-        '10d': "rainy.bmp",                 # rain
-        '11d': "thundery.bmp",              # thunderstorm
-        '13d': "snowy.bmp",                 # snow
-        '50d': "misty.bmp",                 # mist
-        '01n': "moony.bmp",                 # night clear sky
-        '02n': "partly-cloudy-night.bmp"    # night few clouds
+        '01d': 'sunny.bmp',                 # clear sky
+        '02d': 'partly-cloudy.bmp',         # few clouds
+        '03d': 'cloudy.bmp',                # scattered clouds
+        '04d': 'cloudy.bmp',                # broken clouds
+        '09d': 'rainy.bmp',                 # shower rain
+        '10d': 'rainy.bmp',                 # rain
+        '11d': 'thundery.bmp',              # thunderstorm
+        '13d': 'snowy.bmp',                 # snow
+        '50d': 'misty.bmp',                 # mist
+        '01n': 'moony.bmp',                 # night clear sky
+        '02n': 'partly-cloudy-night.bmp'    # night few clouds
     }
 
-    font_path = "../matrix/fonts/"
+    font_path = '../matrix/fonts/'
     # time styling and positioning
     time_font = graphics.Font()
-    time_font.LoadFont(font_path + "6x10.bdf")
+    time_font.LoadFont(font_path + '6x10.bdf')
     time_color = graphics.Color(255, 110, 255)
     time_x, time_y = 1, 10
 
@@ -64,12 +65,12 @@ class WeatherClock(BaseScene):
 
     # temp styling and positioning
     temp_font = graphics.Font()
-    temp_font.LoadFont(font_path + "5x7.bdf")
+    temp_font.LoadFont(font_path + '5x7.bdf')
     temp_color = graphics.Color(0, 179, 239)
     temp_x, temp_y = 17, 24
 
     temp_mm_font = graphics.Font()
-    temp_mm_font.LoadFont(font_path + "4x6.bdf")
+    temp_mm_font.LoadFont(font_path + '4x6.bdf')
     temp_mm_color = graphics.Color(100, 150, 0)
     temp_max_x, temp_max_y = 20, 17
     temp_min_x, temp_min_y = 20, 30
@@ -101,16 +102,16 @@ class WeatherClock(BaseScene):
                 return json
             except Exception as e:
                 print(e)
-                print("Attempting {0}-second backoff...".format(attempt))
+                print('Attempting {0}-second backoff...'.format(attempt))
                 time.sleep(attempt)
-        raise Exception("5 requests failed.")
+        raise Exception('5 requests failed.')
 
     def __get_weather(self):
         json = self.__make_request(self.current_url)
         icon = json['weather'][0]['icon']
         icon_path = self.img_path + self.get_weather_icon(icon)
         glyph = Image.open(icon_path).convert('RGB')
-        temperature = self.__k_to_f(json['main']['temp']) + "F"
+        temperature = self.__k_to_f(json['main']['temp']) + 'F'
 
         # make a second request to the daily forecast for temp high and low
         json = self.__make_request(self.day_url)
@@ -129,7 +130,7 @@ class WeatherClock(BaseScene):
     def draw_weather(self):
         temp, temp_min, temp_max, glyph, icon_path = self.last_weather
 
-        if icon_path == "snowy.bmp":
+        if icon_path == 'snowy.bmp':
             if self.animator is None:
                 self.animator = snow.SnowAnimator()
             frame = self.animator.get_frame()
@@ -188,5 +189,5 @@ class WeatherClock(BaseScene):
 
 
 # Main function
-if __name__ == "__main__":
+if __name__ == '__main__':
     WeatherClock().run()
