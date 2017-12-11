@@ -30,7 +30,7 @@ class WeatherClock(BaseScene):
         self.base_url = 'http://api.openweathermap.org/data/2.5'
         self.current_url = (self.base_url + '/weather?id={}&APPID={}'
                     .format(self.city_id, self.api_key))
-        self.day_url = (self.base_url + '/data/2.5/forecast/daily?id={}&APPID={}&cnt=1'
+        self.day_url = (self.base_url + '/forecast/daily?id={}&APPID={}&cnt=1'
                .format(self.city_id, self.api_key))
 
         self.last_weather = None
