@@ -122,7 +122,10 @@ class WeatherClock(BaseScene):
 
     def draw_time(self):
         # set up the time display
-        cur_time = dt.datetime.now().strftime('%H %M')
+        cur_time = dt.datetime.now().strftime('%I %M')
+        # if the time is 0X XX then replace the 0 with a space
+        if cur_time.startswith('0'):
+            cur_time = ' ' + cur_time[1:]
 
         graphics.DrawText(self.offscreen_canvas, self.time_font, self.time_x,
                           self.time_y, self.time_color, cur_time)
