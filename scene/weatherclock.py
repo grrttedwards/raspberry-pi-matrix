@@ -130,19 +130,23 @@ class WeatherClock(BaseScene):
         graphics.DrawText(self.offscreen_canvas, self.time_font, self.time_x,
                           self.time_y, self.time_color, cur_time)
 
+    def draw_animation(self, color):
+        frame = self.animator.get_frame()
+        for y, row in enumerate(frame):
+            for x, pixel in enumerate(row):
+                if pixel:
+                    self.offscreen_canvas.SetPixel(x, y, *color)
+                else:
+                    self.offscreen_canvas.SetPixel(x, y, 0, 0, 0)
+
     def draw_weather(self):
         temp, temp_min, temp_max, glyph, icon_path = self.last_weather
 
         if icon_path == 'snowy.bmp':
-            if self.animator is None:
+            if type(self.animator) is not snow.SnowAnimator:
                 self.animator = snow.SnowAnimator()
-            frame = self.animator.get_frame()
-            for y, row in enumerate(frame):
-                for x, pixel in enumerate(row):
-                    if pixel:
-                        self.offscreen_canvas.SetPixel(x, y, 255, 255, 255)
-                    else:
-                        self.offscreen_canvas.SetPixel(x, y, 0, 0, 0)
+            self.draw_animation(color=(255, 255, 255))
+
         else:
             self.animator = None
 
