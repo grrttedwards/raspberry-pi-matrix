@@ -110,7 +110,7 @@ class WeatherClock(BaseScene):
         json = self.__make_request(self.current_url)
         icon = json['weather'][0]['icon']
         icon_path = self.img_path + self.get_weather_icon(icon)
-        glyph = Image.open(icon_path).convert('RGB')
+        glyph = Image.open(icon_path)
         temperature = self.__k_to_f(json['main']['temp']) + 'F'
 
         # make a second request to the daily forecast for temp high and low
@@ -150,8 +150,8 @@ class WeatherClock(BaseScene):
         else:
             self.animator = None
 
-
-        self.offscreen_canvas.SetImage(glyph, self.icon_x, self.icon_y)
+        self.draw_image(glyph, self.offscreen_canvas, self.icon_x, self.icon_y)
+        # self.offscreen_canvas.SetImage(glyph, self.icon_x, self.icon_y)
         # set up the temperature display
         graphics.DrawText(self.offscreen_canvas, self.temp_mm_font,
                           self.temp_max_x, self.temp_max_y,
