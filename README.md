@@ -1,6 +1,7 @@
 Raspberry Pi LED Matrix
 =======================
 
+Displays programmatic scenes such as a clock and weather notification board, or Conway's Game of Life.
 A tiny clock and weather notification board for the morning.
 Uses [hzeller's rpi-rgb-led-matrix code](https://github.com/hzeller/rpi-rgb-led-matrix) for driving the board.
 
