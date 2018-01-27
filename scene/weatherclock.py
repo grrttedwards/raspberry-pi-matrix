@@ -6,7 +6,7 @@ import os
 import time
 import datetime as dt
 import requests
-from base import BaseScene
+from scene.base import BaseScene
 from rgbmatrix import graphics
 from PIL import Image
 sys.path.append('../')
@@ -36,9 +36,10 @@ class WeatherClock(BaseScene):
         self.last_weather = None
         self.animator = None
         self.offscreen_canvas = self.matrix.CreateFrameCanvas()
+    
+    file_path = os.path.dirname(__file__) + '/'
 
-
-    img_path = '../img/weather/'
+    img_path = file_path + '../img/weather/'
     weather_icons = {
         '01d': 'sunny.bmp',                 # clear sky
         '02d': 'partly-cloudy.bmp',         # few clouds
@@ -53,7 +54,7 @@ class WeatherClock(BaseScene):
         '02n': 'partly-cloudy-night.bmp'    # night few clouds
     }
 
-    font_path = '../matrix/fonts/'
+    font_path =  file_path + '../matrix/fonts/'
     # time styling and positioning
     time_font = graphics.Font()
     time_font.LoadFont(font_path + '6x10.bdf')

@@ -10,7 +10,7 @@ class BaseScene(object):
 
     def __init__(self):
         self.config = configparser.ConfigParser()
-        self.config.read('../settings.ini')
+        self.config.read(os.path.dirname(__file__) + '/../settings.ini')
 
         # configuration for the matrix
         self.matrix_options = RGBMatrixOptions()
@@ -32,6 +32,6 @@ class BaseScene(object):
         for y in range(image.height):
             for x in range(image.width):
                 color = image.getpixel((x, y))
-                if color != (0,0,0):
+                if color != (0, 0, 0):
                     # don't draw black pixels
                     canvas.SetPixel(at_x + x, at_y + y, *color)
