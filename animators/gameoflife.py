@@ -4,6 +4,8 @@ import time
 class GameOfLifeAnimator:
 
     FRAME_SIZE = 32
+    BOUNDARY_SIZE = 2
+    SIZE = FRAME_SIZE + BOUNDARY_SIZE
 
 
     def __init__(self):
@@ -11,16 +13,20 @@ class GameOfLifeAnimator:
 
     def __make_row(self):
         probability = 8
-        row = [0] * GameOfLifeAnimator.FRAME_SIZE
+        row = [0] * self.SIZE
 
-        for i, pixel in enumerate(row):
+        for i in range(1, len(row) - 1):
             if random.randint(1, probability) == 1:
                 row[i] = 1
         return row
 
     def __get_first_frame(self):
         # initialize the frame
-        return [self.__make_row() for _ in range(self.FRAME_SIZE)]
+        frame = [[0] * self.SIZE]
+        for _ in range(1, self.SIZE - 1):
+            frame.append(self.__make_row())
+        frame.append([0] * self.SIZE)
+        return frame
 
 
     def decide_fate(self, x, y):
@@ -36,14 +42,10 @@ class GameOfLifeAnimator:
             for dx in [-1, 0, 1]:
                 if (dy != 0 or dx != 0) and (x + dx >= 0 and y + dy >= 0):
                     # do not allow dx=0 dy=0 to avoid checking the same Point,
-                    try:
-                        neighbor = self.last_frame[y + dy][x + dx]
-                        if neighbor:  # neighbor is alive
-                            alive += 1
-                        else:
-                            dead += 1
-                    except IndexError:
-                        # an "edge" of the map was hit, which is a dead cell
+                    neighbor = self.last_frame[y + dy][x + dx]
+                    if neighbor:  # neighbor is alive
+                        alive += 1
+                    else:
                         dead += 1
 
         if self.last_frame[y][x]:
@@ -62,13 +64,13 @@ class GameOfLifeAnimator:
         return result
 
     def next_iteration(self):
-        size = self.FRAME_SIZE
-        next_frame = []
+        size = self.SIZE
+        next_frame = [[0] * self.SIZE]
         for _ in range(size):
-            next_frame.append([0] * 32)
+            next_frame.append([0] * self.SIZE)
 
-        for y in range(size):
-            for x in range(size):
+        for y in range(1, self.SIZE - 1):
+            for x in range(1, self.SIZE - 1):
                 next_frame[y][x] = self.decide_fate(x, y)
         return next_frame
 
@@ -80,4 +82,7 @@ class GameOfLifeAnimator:
             frame = self.next_iteration()
 
         self.last_frame = frame
+        cropped_frame = frame[1:-1]  # remove first and last rows
+        for i, row in enumerate(cropped_frame):
+            cropped_frame[i] = row[1:-1]
         return frame
