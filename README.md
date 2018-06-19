@@ -38,6 +38,12 @@ end_min = 0
 ## How beautiful
 Weather effects!
 
-![example beautifulness snow](snowing.gif)
+![example beautifulness snow](doc/snowing.gif)
 
-![example beautifulness sun](sunny.gif)
+![example beautifulness sun](doc/sunny.gif)
+
+## How?
+Like this:
+![build process 1](doc/buildproc1.jpg)
+![build process 2](doc/buildproc2.jpg)
+![build process 3](doc/buildproc3.jpg)
